@@ -2,9 +2,12 @@ from fpdf import FPDF
 import requests
 import os
 
-API_KEY = os.getenv("CARD_API_KEY")
-print(API_KEY)
-API_KEY = "AIzaSyB0h1w4sGCCpjU0BUNJo7Th5AOQkYQ4_JE"
+import json
+
+with open("API_KEY.json", "r") as file:
+    config = json.load(file)
+
+API_KEY = config["api_key"]
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 
