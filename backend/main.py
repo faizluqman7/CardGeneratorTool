@@ -40,6 +40,8 @@ class CardGenerator:
             text_output = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
             print(text_output)
             pairs = [tuple(pair.split(" - ")) for pair in text_output.strip().split("\n") if " - " in pair]
+            print("OK")
+            print(pairs)
             return pairs
         except Exception as e:
             print("Error generating word pairs:", e)
