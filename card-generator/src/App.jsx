@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import "./App.css";
 
 const API_BASE_URL = "http://127.0.0.1:5000"; // Update this if your Flask backend runs on a different URL
@@ -6,7 +6,8 @@ const API_BASE_URL = "http://127.0.0.1:5000"; // Update this if your Flask backe
 const App = () => {
     return (
         <div className="container">
-            <h1>Card Generator Tool</h1>
+            <h1>CardGPT</h1>
+            <h3>Hi, what cards should I generate?</h3>
             <CardGenerator />
         </div>
     );
@@ -18,6 +19,7 @@ const CardGenerator = () => {
     const [wordPairs, setWordPairs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [pdfUrl, setPdfUrl] = useState("");
+    const [displayedPairs, setDisplayedPairs] = useState([]);
 
     const generateCards = async () => {
         setLoading(true);
@@ -45,17 +47,31 @@ const CardGenerator = () => {
         setLoading(false);
     };
 
+    useEffect(() => {
+        if (wordPairs.length > 0) {
+            setDisplayedPairs([]); // Reset before animation
+            wordPairs.forEach((pair, index) => {
+                setTimeout(() => {
+                    setDisplayedPairs((prev) => [...prev, pair]);
+                }, index * 300); // Adjust timing for a slower reveal
+            });
+        }
+    }, [wordPairs]);
+
     return (
         <div className="card-generator">
             <input
                 type="text"
-                placeholder="Enter category"
+                className="large-textbox"
+                placeholder="Generate any category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
             />
+            <p></p>
             <input
                 type="number"
-                placeholder="Number of pairs"
+                className={"small-textbox"}
+                placeholder="How many pairs?"
                 value={numPairs}
                 onChange={(e) => setNumPairs(parseInt(e.target.value))}
             />
@@ -64,12 +80,12 @@ const CardGenerator = () => {
                 {loading ? "Generating..." : "Generate Word Pairs"}
             </button>
 
-            {wordPairs.length > 0 && (
+            {displayedPairs.length > 0 && (
                 <div>
                     <h2>Generated Word Pairs</h2>
                     <ul>
-                        {wordPairs.map(([word1, word2], index) => (
-                            <li key={index}>
+                        {displayedPairs.map(([word1, word2], index) => (
+                            <li key={index} className="fade-in">
                                 {word1} - {word2}
                             </li>
                         ))}
@@ -80,7 +96,6 @@ const CardGenerator = () => {
                         </a>
                     )}
                 </div>
-
             )}
         </div>
     );
