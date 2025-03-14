@@ -8,10 +8,12 @@ import json
 
 class CardGenerator:
     def __init__(self):
-        with open("API_KEY.json", "r") as file:
-            config = json.load(file)
+        # with open("API_KEY.json", "r") as file:
+        #     config = json.load(file)
+        #
+        # self.API_KEY = config["api_key"]
+        self.API_KEY = os.getenv("API_KEY")
 
-        self.API_KEY = config["api_key"]
         self.API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
         self.pairs = []
 
