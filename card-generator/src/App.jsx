@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import "./App.css";
 
-const API_BASE_URL = "http://127.0.0.1:5000"; // Update this if your Flask backend runs on a different URL
+const API_BASE_URL = "https://cardgeneratortool.onrender.com"; // Update this if your Flask backend runs on a different URL
 
 const App = () => {
     return (
