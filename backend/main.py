@@ -1,3 +1,5 @@
+import re
+
 from fpdf import FPDF
 import requests
 import os
@@ -39,7 +41,7 @@ class CardGenerator:
             #Extracting the words from the response to put into a tuple pair
             text_output = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
             print(text_output)
-            pairs = [tuple(pair.split(" - ")) for pair in text_output.strip().split("\n") if " - " in pair]
+            pairs = [tuple(re.split(r"\s*-\s*", pair)) for pair in text_output.strip().split("\n") if "-" in pair]
             print("OK")
             print(pairs)
             return pairs

@@ -1,0 +1,6 @@
+Flask
+flask-cors
+jsonify
+flask
+FPDF
+requests
