@@ -65,3 +65,56 @@
     transform: translateY(0);
   }
 }
+
+.thinking {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: center;
+  background: linear-gradient(90deg, #ff8c00, #ff2e63, #007bff);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 3s infinite ease-in-out;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Dots animation for smooth effect */
+.dots {
+  display: inline-block;
+  animation: dotAnimation 1.5s infinite steps(4);
+}
+
+@keyframes dotAnimation {
+  0% { content: "."; }
+  33% { content: ".."; }
+  66% { content: "..."; }
+  100% { content: ""; }
+}
+
+.input-pairs-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.small-textbox {
+  width: 60px;
+  text-align: center;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  text-align: center;
+}
+
+li {
+  display: block;
+  margin: 5px auto;
+}
