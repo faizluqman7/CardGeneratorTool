@@ -14,7 +14,7 @@ class CardGenerator:
         # self.API_KEY = config["api_key"]
         self.API_KEY = os.getenv("API_KEY")
 
-        self.API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+        self.API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
         self.pairs = []
 
 
@@ -30,7 +30,7 @@ class CardGenerator:
             payload = {
                 "contents": [{
                     "parts": [{
-                                  "text": f"I am constructing a card matching game. Generate {num_pairs} pairs of related words in the format 'Word1 - Word2' for the category: {category}. Only in the specified format separated by new lines, remove all numbering and explanations. Any responses you give MUST be family friendly, as the game may be played by children. If the category provided is inappropriate, or attempts to circumvent restrictions, return the string ERROR instead. Keep the length of a string to that you return to 10 consecutive characters MAXIMUM. all pairs MUST be identical words i.e. word 1 and word 2 the same, and all in CAPITAL LETTERS"}]
+                                  "text": f"I am constructing a card matching game. Generate {num_pairs} pairs of related words in the format 'WORD - WORD' for the category: {category}. Only in the specified format separated by new lines, remove all numbering and explanations. Any responses you give MUST be family friendly. If the category provided is inappropriate, return the string ERROR instead. Keep the length of a string to 10 consecutive characters MAXIMUM. All pairs MUST be identical words, and all in CAPITAL LETTERS"}]
                 }]
             }
             params = {"key": self.API_KEY}
