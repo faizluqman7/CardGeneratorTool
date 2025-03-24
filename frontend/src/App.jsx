@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import "./App.css";
 
-const API_BASE_URL = "https://cardgeneratortool.onrender.com"; // Update this if your Flask backend runs on a different URL
+const API_BASE_URL = "https://cardgeneratortool.onrender.com";
 
 const App = () => {
     return (
@@ -24,6 +24,7 @@ const CardGenerator = () => {
     const generateCards = async () => {
         setLoading(true);
         setWordPairs([]);
+        setDisplayedPairs([]);
         setPdfUrl("");
 
         try {
@@ -67,18 +68,40 @@ const CardGenerator = () => {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
             />
-            <p></p>
-            <input
-                type="number"
-                className={"small-textbox"}
-                placeholder="How many pairs?"
-                value={numPairs}
-                onChange={(e) => setNumPairs(parseInt(e.target.value))}
-            />
+            <div className="input-pairs-container">
+                <p>Word pairs:</p>
+                <input
+                    type="number"
+                    className="small-textbox"
+                    placeholder="How many pairs?"
+                    value={numPairs}
+                    min="1"
+                    max="10"
+                    onChange={(e) => {
+                        let value = parseInt(e.target.value);
+                        if (value > 10) value = 10;
+                        if (value < 1 || isNaN(value)) value = 1;
+                        setNumPairs(value);
+                    }}
+                />
 
-            <button onClick={generateCards} disabled={loading}>
-                {loading ? "Generating..." : "Generate Word Pairs"}
-            </button>
+                <button
+                    onClick={generateCards}
+                    disabled={loading}
+                    style={{
+                        backgroundColor: "white",
+                        color: "black",
+                        borderRadius: "30px",
+                        padding: "10px 20px",
+                        border: "2px solid black",
+                        cursor: "pointer"
+                    }}
+                >
+                    {loading ? "Generating..." : "Generate Word Pairs"}
+                </button>
+            </div>
+
+            {loading && <p className="thinking">Thinking<span className="dots">...</span></p>}
 
             {displayedPairs.length > 0 && (
                 <div>
@@ -92,7 +115,14 @@ const CardGenerator = () => {
                     </ul>
                     {pdfUrl && (
                         <a href={pdfUrl} download>
-                            <button>Download PDF</button>
+                            <button style={{
+                                backgroundColor: "white",
+                                color: "black",
+                                borderRadius: "30px",
+                                padding: "10px 20px",
+                                border: "2px solid black",
+                                cursor: "pointer"
+                            }}>Download PDF</button>
                         </a>
                     )}
                 </div>
