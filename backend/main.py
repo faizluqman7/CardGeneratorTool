@@ -14,7 +14,7 @@ class CardGenerator:
         # self.API_KEY = config["api_key"]
         self.API_KEY = os.getenv("API_KEY")
 
-        self.API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+        self.API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
         self.pairs = []
 
 
