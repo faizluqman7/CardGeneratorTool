@@ -14,13 +14,12 @@ class CardGenerator:
         # self.API_KEY = config["api_key"]
         self.API_KEY = os.getenv("API_KEY")
 
-        self.API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
+        self.API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
         self.pairs = []
 
 
     def get_word_pairs(self):
         return self.pairs
-
 
     def generate_word_pairs(self, category, num_pairs=10):
         try:
@@ -30,17 +29,19 @@ class CardGenerator:
             payload = {
                 "contents": [{
                     "parts": [{
-                                  "text": f"I am constructing a card matching game. Generate {num_pairs} pairs of related words in the format 'WORD - WORD' for the category: {category}. Only in the specified format separated by new lines, remove all numbering and explanations. Any responses you give MUST be family friendly. If the category provided is inappropriate, return the string ERROR instead. Keep the length of a string to 10 consecutive characters MAXIMUM. All pairs MUST be identical words, and all in CAPITAL LETTERS"}]
+                        "text": f"I am constructing a card matching game. Generate {num_pairs} pairs of related words in the format 'WORD - WORD' for the category: {category}. Only in the specified format separated by new lines, remove all numbering and explanations. Any responses you give MUST be family friendly. If the category provided is inappropriate, return the string ERROR instead. Keep the length of a string to 10 consecutive characters MAXIMUM. All pairs MUST be identical words, and all in CAPITAL LETTERS"}]
                 }]
             }
             params = {"key": self.API_KEY}
+
             response = requests.post(self.API_URL, headers=headers, json=payload, params=params)
+
+            print(f"Response Status Code: {response.status_code}")
+            print(f"Response Body: {response.text}")  # Print the response for debugging
+
             response.raise_for_status()
             result = response.json()
-
-
-
-            #Extracting the words from the response to put into a tuple pair
+            # Extract the words from the response
             text_output = result.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
             print(text_output)
             pairs = [tuple(re.split(r"\s*-\s*", pair)) for pair in text_output.strip().split("\n") if "-" in pair]
