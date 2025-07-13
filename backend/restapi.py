@@ -1,13 +1,20 @@
 import os
+import psycopg2
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from main import CardGenerator
+from database import DatabaseManager
+import uuid
 
 app = Flask(__name__)
 CORS(app)
 
 card_generator = CardGenerator()
+db_manager = DatabaseManager()
 PDF_FILENAME = 'cards.pdf'
+
+# Initialize database tables on startup
+db_manager.create_tables()
 
 @app.route('/generate', methods=['POST'])
 def generate():
@@ -38,6 +45,49 @@ def download_pdf():
             return jsonify({'error': 'PDF file not found.'}), 404
 
         return send_file(PDF_FILENAME, as_attachment=True)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/save', methods=['POST'])
+def save_cards():
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        word_pairs = data.get('word_pairs')
+
+        if not name or not word_pairs:
+            return jsonify({'error': 'Name and word pairs are required.'}), 400
+
+        # Save cards to the PostgreSQL database
+        card_id = db_manager.save_cards(name, word_pairs)
+        
+        if card_id:
+            return jsonify({
+                'message': 'Cards saved successfully.',
+                'card_id': card_id
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to save cards to database.'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/retrieve', methods=['GET'])
+def retrieve_cards():
+    try:
+        card_id = request.args.get('id')
+
+        if not card_id:
+            return jsonify({'error': 'Card ID is required'}), 400
+
+        # Retrieve cards from the database
+        cards_data = db_manager.retrieve_cards(card_id)
+        
+        if cards_data:
+            return jsonify(cards_data), 200
+        else:
+            return jsonify({'error': 'Card not found'}), 404
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
