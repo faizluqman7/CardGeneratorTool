@@ -6,3 +6,7 @@ FPDF
 requests
 psycopg2-binary
 dotenv
+jwt
+pyjwt
+werkzeug
+datetime

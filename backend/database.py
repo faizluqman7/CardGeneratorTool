@@ -25,7 +25,7 @@ class DatabaseManager:
             return None
     
     def create_tables(self):
-        """Create the cards table if it doesn't exist"""
+        """Create the cards and users tables if they don't exist"""
         conn = self.get_connection()
         if not conn:
             return False
@@ -34,7 +34,7 @@ class DatabaseManager:
             cursor = conn.cursor()
             
             # Create cards table
-            create_table_query = """
+            create_cards_table_query = """
             CREATE TABLE IF NOT EXISTS cards (
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 name VARCHAR(255) NOT NULL,
@@ -43,7 +43,20 @@ class DatabaseManager:
             );
             """
             
-            cursor.execute(create_table_query)
+            cursor.execute(create_cards_table_query)
+
+            # Create users table
+            create_users_table_query = """
+            CREATE TABLE IF NOT EXISTS users (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                email VARCHAR(255) UNIQUE NOT NULL,
+                username VARCHAR(255) NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            """
+
+            cursor.execute(create_users_table_query)
             conn.commit()
             cursor.close()
             conn.close()
@@ -119,4 +132,64 @@ class DatabaseManager:
             print(f"Error retrieving cards: {e}")
             if conn:
                 conn.close()
-            return None 
+            return None
+
+    def create_user(self, email, username, password):
+        """Register a new user"""
+        conn = self.get_connection()
+        if not conn:
+            return None
+
+        try:
+            cursor = conn.cursor()
+
+            insert_query = """
+            INSERT INTO users (email, username, password)
+            VALUES (%s, %s, %s)
+            RETURNING id;
+            """
+
+            cursor.execute(insert_query, (email, username, password))
+            user_id = cursor.fetchone()[0]
+
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+            return str(user_id)
+
+        except Exception as e:
+            print(f"Error creating user: {e}")
+            if conn:
+                conn.rollback()
+                conn.close()
+            return None
+
+    def get_user_by_email(self, email):
+        """Retrieve a user by email"""
+        conn = self.get_connection()
+        if not conn:
+            return None
+
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+            select_query = """
+            SELECT id, email, username, password, created_at
+            FROM users
+            WHERE email = %s;
+            """
+
+            cursor.execute(select_query, (email,))
+            result = cursor.fetchone()
+
+            cursor.close()
+            conn.close()
+
+            return result
+
+        except Exception as e:
+            print(f"Error retrieving user: {e}")
+            if conn:
+                conn.close()
+            return None
