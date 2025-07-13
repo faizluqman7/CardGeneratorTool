@@ -165,6 +165,21 @@ def login():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@app.route('/community', methods=['GET'])
+def get_all_cards():
+    try:
+        # Retrieve all cards from the database
+        cards = db_manager.get_all_cards()
+
+        if cards:
+            return jsonify(cards), 200
+        else:
+            return jsonify({'error': 'No cards found.'}), 404
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == "__main__":
     #app.run(debug=True)
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000))) #render

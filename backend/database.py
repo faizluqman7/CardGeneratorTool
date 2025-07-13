@@ -193,3 +193,39 @@ class DatabaseManager:
             if conn:
                 conn.close()
             return None
+
+    def get_all_cards(self):
+        """Retrieve all cards from the database"""
+        conn = self.get_connection()
+        if not conn:
+            return None
+
+        try:
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+            select_query = """
+            SELECT id, name, word_pairs, created_at
+            FROM cards;
+            """
+
+            cursor.execute(select_query)
+            results = cursor.fetchall()
+
+            cursor.close()
+            conn.close()
+
+            return [
+                {
+                    'id': row['id'],
+                    'name': row['name'],
+                    'word_pairs': row['word_pairs'],
+                    'created_at': row['created_at'].isoformat() if row['created_at'] else None
+                }
+                for row in results
+            ]
+
+        except Exception as e:
+            print(f"Error retrieving all cards: {e}")
+            if conn:
+                conn.close()
+            return None
