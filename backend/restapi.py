@@ -1,7 +1,6 @@
 import os
 import psycopg2
-from flask import Flask, request, jsonify, send_file
-from flask_cors import CORS
+from flask import Flask, request, jsonify, send_file, send_from_directory
 from main import CardGenerator
 from database import DatabaseManager
 import uuid
@@ -13,8 +12,14 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from dotenv import load_dotenv
 load_dotenv()
 
+# Initialize Flask app. If you build the frontend to `frontend/dist`, the server
+# will serve the static files so frontend and backend are same-origin and CORS
+# is not required. If you prefer a separate frontend host, re-enable CORS instead.
 app = Flask(__name__)
-CORS(app)
+
+# Path to a built frontend (Vite build output). If present, the app will serve it.
+FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'))
+SERVE_FRONTEND = os.path.isdir(FRONTEND_DIST)
 
 card_generator = CardGenerator()
 db_manager = DatabaseManager()
@@ -60,6 +65,24 @@ def generate():
 def handle_unauthorized(e):
     # Return JSON for unauthorized errors so frontends don't get HTML redirects
     return jsonify({'error': 'Unauthorized'}), 401
+
+
+# Serve frontend files if a build exists so the API and UI share the same origin
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if SERVE_FRONTEND:
+        # If the file exists in the dist folder, serve it; otherwise serve index.html
+        target = path or 'index.html'
+        file_path = os.path.join(FRONTEND_DIST, target)
+        if os.path.exists(file_path) and os.path.isfile(file_path):
+            return send_from_directory(FRONTEND_DIST, target)
+        return send_from_directory(FRONTEND_DIST, 'index.html')
+
+    # No frontend present — return a small JSON response for root
+    if path == '' or path == 'index.html':
+        return jsonify({'message': 'CardGeneratorTool API running.'})
+    return jsonify({'error': 'Not found'}), 404
 
 @app.route('/download', methods=['GET'])
 def download_pdf():
