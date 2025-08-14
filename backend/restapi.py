@@ -23,6 +23,11 @@ PDF_FILENAME = 'cards.pdf'
 # Secret key for JWT
 JWT_SECRET = os.getenv('JWT_SECRET')
 
+# If JWT secret is not provided, fall back to a development secret and warn.
+if not JWT_SECRET:
+    JWT_SECRET = 'dev-secret'
+    print("Warning: JWT_SECRET not set. Using development JWT_SECRET.", file=sys.stderr)
+
 # Initialize database tables on startup
 db_manager.create_tables()
 
@@ -30,6 +35,8 @@ db_manager.create_tables()
 def generate():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body must be JSON.'}), 400
         category = data.get('category')
         num_pairs = data.get('num_pairs', 10)
 
@@ -48,13 +55,21 @@ def generate():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@app.errorhandler(401)
+def handle_unauthorized(e):
+    # Return JSON for unauthorized errors so frontends don't get HTML redirects
+    return jsonify({'error': 'Unauthorized'}), 401
+
 @app.route('/download', methods=['GET'])
 def download_pdf():
     try:
-        if not os.path.exists(PDF_FILENAME):
+        # Resolve to absolute path to avoid surprises when running from different CWDs
+        pdf_path = os.path.abspath(PDF_FILENAME)
+        if not os.path.exists(pdf_path):
             return jsonify({'error': 'PDF file not found.'}), 404
 
-        return send_file(PDF_FILENAME, as_attachment=True)
+        return send_file(pdf_path, as_attachment=True)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -77,6 +92,8 @@ def save_cards():
             return jsonify({'error': 'Invalid token.'}), 401
 
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body must be JSON.'}), 400
         name = data.get('name')
         word_pairs = data.get('word_pairs')
 
@@ -120,6 +137,8 @@ def retrieve_cards():
 def register():
     try:
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body must be JSON.'}), 400
         email = data.get('email')
         username = data.get('username')
         password = data.get('password')
@@ -128,7 +147,11 @@ def register():
             return jsonify({'error': 'Email, username, and password are required.'}), 400
 
         hashed_password = generate_password_hash(password)
-        user_id = db_manager.create_user(email, username, hashed_password)
+        try:
+            user_id = db_manager.create_user(email, username, hashed_password)
+        except psycopg2.IntegrityError:
+            # Likely duplicate email/username
+            return jsonify({'error': 'User with that email or username already exists.'}), 409
 
         if user_id:
             return jsonify({'message': 'User registered successfully.', 'user_id': user_id}), 201
@@ -138,10 +161,15 @@ def register():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/login', methods=['POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     try:
+        # Allow GET for developer tools or redirects from browsers to avoid 405
+        if request.method == 'GET':
+            return jsonify({'message': 'Send POST with email and password.'}), 200
         data = request.get_json()
+        if not data:
+            return jsonify({'error': 'Request body must be JSON.'}), 400
         email = data.get('email')
         password = data.get('password')
 
@@ -172,10 +200,11 @@ def get_all_cards():
         # Retrieve all cards from the database
         cards = db_manager.get_all_cards()
 
+        # Return an empty list (200) when there are no community cards instead of 404.
         if cards:
             return jsonify(cards), 200
         else:
-            return jsonify({'error': 'No cards found.'}), 404
+            return jsonify([]), 200
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
