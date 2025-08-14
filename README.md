@@ -1,133 +1,52 @@
-## CardGeneratorTool — Generated README (snapshot)
+CardGPT — Playful Card Matching Game Generator
 
-This README summarizes the current state of the CardGeneratorTool project as of the latest repository snapshot. It lists app features, backend endpoints, environment variables, install/run steps, security notes, and recommended next steps.
+Welcome to CardGPT — an easy way to create printable matching-card games from categories you choose.
 
-### Summary
-- Web app that generates card-matching word pairs (via a generative language model), renders them to PDF, and persists/save cards to a database.
-- Frontend: Vite + React (under `frontend/`).
-- Backend: Flask-based API (several modules under `backend/`) with two DB approaches present in the codebase: a Flask-SQLAlchemy model layer and a separate `backend/database.py` using psycopg2 (Supabase/Postgres style). There are also blueprints using Flask-Login plus JWT-based endpoints — these should be unified before production.
+Website
+- Open the app at: https://cardgpt.faizluqman.my  (If this address doesn’t work, try adding/removing `www.` or contact the developer.)
 
-### Key features
-- Generate word-pair lists using an external generative language API (configurable with `API_KEY`).
-- Produce printable PDF card sheets from generated word pairs.
-- Save cards metadata and PDF filenames to a persistent database.
-- Download saved PDFs.
-- User registration and authentication: both session-based (Flask-Login) and JWT-style handlers exist in the codebase.
-- Community/public endpoint to list cards from the DB.
+What it does (in plain English)
+- Pick a category (animals, food, colors, etc.).
+- The site generates pairs of related words for that category.
+- You can preview the word pairs, create a printable PDF of cards, and download or save your deck.
+- Saved decks can be re-downloaded later or shared with others.
 
-### Backend API (endpoints)
-The primary backend API implemented in `backend/restapi.py` exposes the following endpoints:
+How to use
+1. Enter a category in the search box (for example: "animals").
+2. Choose how many pairs you want (common defaults are 8 or 10).
+3. Click Generate. The app will show the generated word pairs.
+4. Click "Create PDF" to make a printable sheet of cards.
+5. Click "Download" to save the PDF to your computer, or "Save" to store it in your account for later.
 
-- POST /generate
-  - Payload: JSON { "category": "animals", "num_pairs": 10 }
-  - Returns: generated word pairs (JSON array) and writes a PDF for the last generation.
+Tips for printing
+- The PDF is formatted for standard paper sizes. Use your printer’s "Actual size" or 100% scaling for best results.
+- For sturdier cards, print on card stock and cut along the borders.
+- If the words are long, choose fewer pairs or landscape printing to keep text large and legible.
 
-- GET /download
-  - Returns: the most recent generated `cards.pdf` (file must exist on server).
+Accounts and saving
+- You can create a free account to save decks and download them again later.
+- When saving, the app stores the word pairs and a PDF file so you can access your decks from different devices.
 
-- POST /save
-  - Auth: Bearer JWT token in `Authorization` header.
-  - Payload: JSON { "name": "My deck", "word_pairs": [...] }
-  - Saves to Postgres (via `backend/database.py`) and returns card id.
+Privacy and safety
+- The app uses a language model to generate words. Content is filtered for family-friendliness, but occasionally unexpected outputs can occur — please review before printing for children.
+- The app does not publish your saved decks publicly unless you choose to share them.
 
-- GET /retrieve?id=<card_id>
-  - Returns: saved card record (name, word_pairs, created_at).
+Troubleshooting
+- Nothing happens when you click Generate: check your internet connection and try again.
+- PDF won’t download: try a different browser (Chrome, Firefox, Safari) or check your browser’s pop-up/download settings.
+- Login problems: try resetting your password or use the "Contact" option on the site.
 
-- POST /register
-  - Payload: { email, username, password }
-  - Creates a user in the SQL DB and returns 201 on success.
+Accessibility
+- The site aims to be keyboard-friendly and readable; if you need assistance or spot accessibility problems, please report them.
 
-- POST /login
-  - Payload: { email, password }
-  - Returns: JWT token when credentials are valid.
+Need help or want to report a bug?
+- Use the Contact link on the website or open an issue in the project repository (search for the project on GitHub under the developer’s account).
 
-- GET /community
-  - Returns: list of cards (via the DB manager).
+Quick FAQ
+- Q: Can I customize fonts or card sizes?  
+  A: Not currently — PDFs are generated with a readable font and standard card sizes. Tell us if you need other sizes.
 
-Note: There are also Flask blueprint implementations in `backend/auth.py` and `backend/cards.py` that use session cookies and Flask-Login; refer to those files if you rely on cookie-based auth instead of JWT.
+- Q: Can I share decks with friends?  
+  A: Yes — save a deck and share the downloaded PDF, or use any sharing option provided on the site.
 
-### Environment variables / configuration
-- `SECRET_KEY` — required by `backend/config.py` (session signing). The app will raise if missing.
-- `API_KEY` — API key for the external generative language API used by `backend/main.py`.
-- `JWT_SECRET` — symmetric secret used to sign JWT tokens (used in `restapi.py`).
-- `PDF_UPLOAD_FOLDER` — optional; directory where generated PDFs are stored (some code stores basenames in DB and writes into this folder).
-- `DATABASE_URL` — used by SQLAlchemy-style config (may be `sqlite:///cards.db` by default).
-- `SUPABASE_URL` — used by `backend/database.py`/psycopg2 if you use the Postgres/Supabase manager.
-- `PORT` — optional port for running the Flask app (default 5000).
-
-Make sure to set these in a `.env` file or environment before running.
-
-### Install (backend)
-1. Create and activate a Python virtualenv (recommended):
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-```
-2. Install dependencies:
-```bash
-python -m pip install -r backend/requirements.txt
-```
-
-### Run (backend)
-1. Export required env vars (example):
-```bash
-export SECRET_KEY='replace-with-strong-secret'
-export API_KEY='your-model-api-key'
-export JWT_SECRET='replace-with-jwt-secret'
-export SUPABASE_URL='postgres://user:pass@host:5432/dbname' # if using DatabaseManager
-export PDF_UPLOAD_FOLDER="$PWD/backend/pdfs"
-mkdir -p "$PDF_UPLOAD_FOLDER"
-```
-2. Start the API server:
-```bash
-python3 backend/restapi.py
-```
-
-### Run (frontend)
-1. Go to `frontend/`, install and run (Vite):
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### Example requests
-- Generate word pairs (cURL):
-```bash
-curl -X POST http://localhost:5000/generate \
-  -H 'Content-Type: application/json' \
-  -d '{"category": "animals", "num_pairs": 8}'
-```
-
-- Login and save (cURL):
-```bash
-# Login -> get token
-curl -X POST http://localhost:5000/login -H 'Content-Type: application/json' -d '{"email":"me@example.com","password":"pass"}'
-
-# Save with token
-curl -X POST http://localhost:5000/save -H "Authorization: Bearer <TOKEN>" -H 'Content-Type: application/json' \
-  -d '{"name":"My deck","word_pairs": [["CAT","CAT"],["DOG","DOG"]]}'
-```
-
-### Notes and caveats (important)
-- There is duplication and inconsistent persistence/auth stacks in `backend/`:
-  - `backend/models.py` (SQLAlchemy models + Flask-Login) vs `backend/database.py` (psycopg2 DatabaseManager). Decide which DB approach you want and remove the other to avoid split logic.
-  - There are both cookie/session endpoints (blueprints) and JWT endpoints. Pick one auth strategy for consistency.
-- The generative model integration currently accepts and stores responses — you should hard-validate/sanitize model outputs before writing them to PDFs or the DB.
-- Serving files: current code stores PDF basenames in DB and expects files under `PDF_UPLOAD_FOLDER`. Ensure permissions and backups for that folder.
-- `backend/config.py` may enforce a `SECRET_KEY` — set it for production.
-
-### Security recommendations
-- Use Authorization header (Bearer) for API calls rather than query params (avoid key leakage).
-- Set `SESSION_COOKIE_SECURE`, `HTTPONLY`, and `SAMESITE` for cookies in production.
-- Add CSRF protection if you use cookie/session auth + frontend with credentials.
-- Log and monitor attempts to generate unexpected content; sanitize before persist.
-
-### Next steps / suggested cleanups
-1. Choose a single DB strategy (SQLAlchemy OR Postgres client) and consolidate code.
-2. Pick one auth approach (JWT or session cookies) and remove the other blueprints.
-3. Add unit tests for `CardGenerator.generate_word_pairs()` and PDF generation to avoid runtime surprises.
-4. Add a small migration script to move old PDF files into `PDF_UPLOAD_FOLDER` and update DB rows to store basenames.
-
----
-This file was generated from a snapshot of the repository; review and tweak before using in production.
+Thanks for using CardGPT — have fun creating and playing!
