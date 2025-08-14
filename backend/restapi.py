@@ -18,16 +18,10 @@ load_dotenv()
 # is not required. If you prefer a separate frontend host, re-enable CORS instead.
 app = Flask(__name__)
 
-# Re-enable CORS when the frontend is hosted separately. Configure origins with
-# the CORS_ORIGINS env var (comma-separated). Use '*' to allow all origins.
-CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*')
-if CORS_ORIGINS.strip() == '*':
-    cors_origins = '*'
-else:
-    cors_origins = [o.strip() for o in CORS_ORIGINS.split(',') if o.strip()]
-
-CORS(app, resources={r"/*": {"origins": cors_origins}}, supports_credentials=True,
-     allow_headers=['Content-Type', 'Authorization'])
+# Hardcode CORS origin to the frontend host and enable credentials
+HARDCODED_FRONTEND_ORIGIN = 'https://cardgpt.faizluqman.my'
+CORS(app, resources={r"/*": {"origins": [HARDCODED_FRONTEND_ORIGIN]}}, supports_credentials=True,
+    allow_headers=['Content-Type', 'Authorization'])
 
 # Path to a built frontend (Vite build output). If present, the app will serve it.
 FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'))

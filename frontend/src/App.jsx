@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import "./App.css";
 
-const API_BASE_URL = "https://cardgeneratortool.onrender.com";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
 
 const truncate = (str, n = 16) => (str && str.length > n ? str.slice(0, n) + "…" : str);
 
