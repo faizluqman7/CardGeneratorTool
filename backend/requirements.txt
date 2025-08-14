@@ -4,3 +4,7 @@ jsonify
 flask
 FPDF
 requests
+flask-sqlalchemy
+flask-login
+flask-bcrypt
+python-dotenv

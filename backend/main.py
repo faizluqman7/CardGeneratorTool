@@ -97,6 +97,7 @@ class CardGenerator:
 
         pdf.output(output_file)
         print(f"PDF generated: {output_file}")
+        return output_file
 
 
     def main(self):
