@@ -1,5 +1,7 @@
 # CardGeneratorTool - Extended Version
 
+**Live Demo:** [https://cardgpt.faizluqman.my/](https://cardgpt.faizluqman.my/)
+
 A web application that generates word pair cards for educational games, with user authentication and card saving capabilities.
 
 ## Features

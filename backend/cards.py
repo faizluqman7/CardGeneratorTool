@@ -4,6 +4,11 @@ from models import db, SavedCard
 import json
 import os
 from datetime import datetime
+from config import Config
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 cards = Blueprint('cards', __name__)
 
@@ -11,38 +16,38 @@ cards = Blueprint('cards', __name__)
 @login_required
 def save_card():
     try:
-        data = request.get_json()
+        data = request.get_json() or {}
         category = data.get('category')
         word_pairs = data.get('word_pairs')
         num_pairs = data.get('num_pairs')
-        
+
         if not all([category, word_pairs, num_pairs]):
             return jsonify({'error': 'Category, word pairs, and number of pairs are required'}), 400
-        
+
         # Convert word pairs to JSON string for storage
         word_pairs_json = json.dumps(word_pairs)
-        
-        # Generate unique PDF filename
+
+        # Generate unique PDF filename (store only basename in DB)
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        pdf_filename = f"cards_{current_user.id}_{timestamp}.pdf"
-        
+        pdf_basename = f"cards_{current_user.id}_{timestamp}.pdf"
+        pdf_filename = os.path.join(Config.PDF_UPLOAD_FOLDER, pdf_basename)
+
         # Create saved card record
         saved_card = SavedCard(
             user_id=current_user.id,
             category=category,
             word_pairs=word_pairs_json,
             num_pairs=num_pairs,
-            pdf_filename=pdf_filename
+            pdf_filename=pdf_basename
         )
-        
+
         db.session.add(saved_card)
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Card saved successfully',
             'card_id': saved_card.id
         }), 201
-        
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
@@ -99,10 +104,15 @@ def download_saved_card(card_id):
         if not card:
             return jsonify({'error': 'Card not found'}), 404
         
-        if not card.pdf_filename or not os.path.exists(card.pdf_filename):
+        if not card.pdf_filename:
             return jsonify({'error': 'PDF file not found'}), 404
-        
-        return send_file(card.pdf_filename, as_attachment=True)
+
+        # Resolve stored basename into configured folder
+        pdf_path = os.path.join(Config.PDF_UPLOAD_FOLDER, os.path.basename(card.pdf_filename))
+        if not os.path.exists(pdf_path):
+            return jsonify({'error': 'PDF file not found'}), 404
+
+        return send_file(pdf_path, as_attachment=True)
         
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -116,9 +126,14 @@ def delete_card(card_id):
         if not card:
             return jsonify({'error': 'Card not found'}), 404
         
-        # Delete PDF file if it exists
-        if card.pdf_filename and os.path.exists(card.pdf_filename):
-            os.remove(card.pdf_filename)
+        # Delete PDF file if it exists (resolve within configured folder)
+        if card.pdf_filename:
+            pdf_path = os.path.join(Config.PDF_UPLOAD_FOLDER, os.path.basename(card.pdf_filename))
+            try:
+                if os.path.exists(pdf_path):
+                    os.remove(pdf_path)
+            except Exception as ex:
+                logger.exception('Failed to remove PDF file: %s', ex)
         
         db.session.delete(card)
         db.session.commit()
@@ -134,12 +149,13 @@ def save_card_to_db(user_id, category, word_pairs, num_pairs, pdf_filename):
     try:
         word_pairs_json = json.dumps(word_pairs)
         
+        # Store only basename in DB for safety
         saved_card = SavedCard(
             user_id=user_id,
             category=category,
             word_pairs=word_pairs_json,
             num_pairs=num_pairs,
-            pdf_filename=pdf_filename
+            pdf_filename=os.path.basename(pdf_filename)
         )
         
         db.session.add(saved_card)

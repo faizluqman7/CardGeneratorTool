@@ -1,101 +1,78 @@
-.auth-container {
+.auth-modal {
+    min-width: 320px;
+    max-width: 420px;
+    padding: 24px 28px;
+    background: #fff;
+    color: #222;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
     display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 20px;
+    flex-direction: column;
+    gap: 12px;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10001; /* ensure modal sits above overlays */
 }
 
-.auth-card {
-    background: white;
-    padding: 40px;
-    border-radius: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 400px;
-}
-
-.auth-card h2 {
+.auth-modal h2 {
+    margin: 0 0 6px 0;
     text-align: center;
-    margin-bottom: 30px;
-    color: #333;
-    font-size: 28px;
-    font-weight: 600;
 }
 
-.form-group {
-    margin-bottom: 20px;
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.form-group input {
-    width: 100%;
-    padding: 15px;
-    border: 2px solid #e1e5e9;
+.auth-form input {
+    padding: 10px 12px;
     border-radius: 8px;
-    font-size: 16px;
-    transition: border-color 0.3s ease;
-    box-sizing: border-box;
-}
-
-.form-group input:focus {
-    outline: none;
-    border-color: #667eea;
+    border: 1px solid #ddd;
+    font-size: 14px;
 }
 
 .auth-button {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
+    padding: 10px 14px;
     border-radius: 8px;
-    font-size: 16px;
+    border: none;
+    background: #222;
+    color: #fff;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s ease;
 }
 
-.auth-button:hover:not(:disabled) {
-    transform: translateY(-2px);
-}
-
-.auth-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.error-message {
+.auth-error {
     background: #fee;
     color: #c33;
-    padding: 12px;
+    padding: 8px 10px;
     border-radius: 6px;
-    margin-bottom: 20px;
+    font-size: 13px;
     text-align: center;
-    border: 1px solid #fcc;
 }
 
 .auth-switch {
     text-align: center;
-    margin-top: 20px;
-}
-
-.auth-switch p {
-    color: #666;
-    margin: 0;
+    margin-top: 6px;
 }
 
 .switch-button {
     background: none;
     border: none;
-    color: #667eea;
+    color: #222;
     cursor: pointer;
     font-weight: 600;
     text-decoration: underline;
-    padding: 0;
-    margin: 0;
 }
 
-.switch-button:hover {
-    color: #764ba2;
-} 
+.back-btn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}

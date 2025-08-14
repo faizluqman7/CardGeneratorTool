@@ -1,8 +1,8 @@
 import os
+import json
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from flask_login import LoginManager, login_required, current_user
-from flask_bcrypt import Bcrypt
 from dotenv import load_dotenv
 from main import CardGenerator
 from models import db, User
@@ -21,6 +21,12 @@ db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'auth.login'
+
+
+@login_manager.unauthorized_handler
+def unauthorized_callback():
+    # Return JSON 401 for XHR/API clients instead of redirecting to a login page
+    return jsonify({'error': 'Unauthorized'}), 401
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -46,8 +52,8 @@ def generate():
         word_pairs = card_generator.generate_word_pairs(category, num_pairs)
         if not word_pairs:
             return jsonify({'error': 'Failed to generate word pairs.'}), 400
-
-        card_generator.create_pdf(word_pairs)
+        # create PDF inside configured uploads folder
+        card_generator.create_pdf(word_pairs, PDF_FILENAME)
         card_generator.pairs = word_pairs
 
         return jsonify(word_pairs), 200
@@ -100,6 +106,31 @@ def download_pdf():
 
         return send_file(PDF_FILENAME, as_attachment=True)
 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/community', methods=['GET'])
+def community_cards():
+    try:
+        # Return a public list of recently saved cards (without user-sensitive data)
+        from models import SavedCard
+        cards = SavedCard.query.order_by(SavedCard.created_at.desc()).limit(10).all()
+        result = []
+        for c in cards:
+            try:
+                pairs = json.loads(c.word_pairs)
+            except Exception:
+                pairs = []
+            result.append({
+                'id': c.id,
+                'name': c.category,
+                'word_pairs': pairs,
+                'num_pairs': c.num_pairs,
+                'created_at': c.created_at.isoformat()
+            })
+
+        return jsonify(result), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
