@@ -1,3 +1,5 @@
 backend/API_KEY.json
 venv/
 .env
+/backend/database_config.json
+/backend/.env

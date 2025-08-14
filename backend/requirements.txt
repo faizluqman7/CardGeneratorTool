@@ -8,3 +8,8 @@ flask-sqlalchemy
 flask-login
 flask-bcrypt
 python-dotenv
+psycopg2-binary
+dotenv
+pyjwt
+werkzeug
+datetime
