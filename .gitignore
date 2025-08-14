@@ -2,3 +2,4 @@ backend/API_KEY.json
 venv/
 /backend/database_config.json
 /backend/.env
+.env

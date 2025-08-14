@@ -1,6 +1,7 @@
 import os
 import psycopg2
 from flask import Flask, request, jsonify, send_file, send_from_directory
+from flask_cors import CORS
 from main import CardGenerator
 from database import DatabaseManager
 import uuid
@@ -16,6 +17,17 @@ load_dotenv()
 # will serve the static files so frontend and backend are same-origin and CORS
 # is not required. If you prefer a separate frontend host, re-enable CORS instead.
 app = Flask(__name__)
+
+# Re-enable CORS when the frontend is hosted separately. Configure origins with
+# the CORS_ORIGINS env var (comma-separated). Use '*' to allow all origins.
+CORS_ORIGINS = os.getenv('CORS_ORIGINS', '*')
+if CORS_ORIGINS.strip() == '*':
+    cors_origins = '*'
+else:
+    cors_origins = [o.strip() for o in CORS_ORIGINS.split(',') if o.strip()]
+
+CORS(app, resources={r"/*": {"origins": cors_origins}}, supports_credentials=True,
+     allow_headers=['Content-Type', 'Authorization'])
 
 # Path to a built frontend (Vite build output). If present, the app will serve it.
 FRONTEND_DIST = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist'))
